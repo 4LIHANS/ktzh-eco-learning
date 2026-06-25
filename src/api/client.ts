@@ -11,13 +11,15 @@ export interface ApiUser {
   preferredLang: string
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE?.replace(/\/$/, '') ?? '/api'
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers)
   if (options.body && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json')
   }
 
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: 'include',
     headers,
