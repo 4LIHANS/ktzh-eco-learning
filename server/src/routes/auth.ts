@@ -17,7 +17,10 @@ authRouter.post('/login', async (req, res, next) => {
   try {
     const { login, password } = loginSchema.parse(req.body)
     const user = await prisma.user.findUnique({ where: { login: login.toLowerCase() } })
-
+    if (!user) {
+      res.status(401).json({ error: 'Invalid credentials' })
+      return
+    }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) {

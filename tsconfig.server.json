@@ -9,5 +9,5 @@
     "outDir": "dist-server",
     "rootDir": "server/src"
   },
-  "include": ["server/src/**/*", "prisma/seed.ts"]
+  "include": ["server/src/**/*"]
 }

@@ -1,13 +1,14 @@
 import type { Request } from 'express'
-import jwt from 'jsonwebtoken'
+import jwt, { type Secret, type SignOptions } from 'jsonwebtoken'
 import { config } from './config.js'
 import { prisma } from './db.js'
 import type { AuthUser, JwtPayload } from './types.js'
 import { toAppRole } from './types.js'
 
 export async function signToken(userId: string, role: string): Promise<string> {
-  return jwt.sign({ sub: userId, role }, config.jwtSecret, {
-    expiresIn: config.jwtExpiresIn,
+  const sign = jwt.sign as (payload: any, secret: any, options: SignOptions) => string
+  return sign({ sub: userId, role }, config.jwtSecret, {
+    expiresIn: config.jwtExpiresIn as any,
   })
 }
 
