@@ -9,6 +9,7 @@
     "dev:server": "tsx watch server/src/index.ts",
     "build": "npm run db:generate && tsc -b && vite build",
     "build:server": "tsc -p tsconfig.server.json",
+    "postinstall": "npm run build:server",
     "start": "node dist-server/index.js",
     "lint": "oxlint",
     "preview": "vite preview",
