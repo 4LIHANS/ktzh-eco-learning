@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  METHODIST
+  MANAGER
+  EMPLOYEE
+}
+
+enum MaterialType {
+  VIDEO
+  PDF
+  DOCX
+  PPTX
+  LINK
+}
+
+enum QuestionType {
+  SINGLE
+  MULTIPLE
+  MATCHING
+}
+
+model User {
+  id            String   @id @default(cuid())
+  login         String   @unique
+  passwordHash  String
+  fullName      String
+  firstName     String
+  initials      String
+  department    String
+  role          Role     @default(EMPLOYEE)
+  isBlocked     Boolean  @default(false)
+  preferredLang String   @default("ru")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  progress      LessonProgress[]
+  attempts      TestAttempt[]
+  certificates  Certificate[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  assignments   CourseAssignment[]
+}
+
+model Section {
+  id     String   @id @default(cuid())
+  nameRu String
+  nameKk String
+  order  Int      @default(0)
+  courses Course[]
+}
+
+model Course {
+  id            String   @id @default(cuid())
+  sectionId     String
+  section       Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  slug          String   @unique
+  titleRu       String
+  titleKk       String
+  thumbColor    String   @default("green")
+  icon          String   @default("ti-leaf")
+  iconColor     String   @default("#1a5c38")
+  order         Int      @default(0)
+  lessons       Lesson[]
+  assignments   CourseAssignment[]
+  certificates  Certificate[]
+}
+
+model CourseAssignment {
+  id       String @id @default(cuid())
+  userId   String
+  courseId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  titleRu     String
+  titleKk     String
+  order       Int
+  durationSec Int      @default(0)
+  materials   Material[]
+  test        Test?
+  progress    LessonProgress[]
+}
+
+model Material {
+  id          String       @id @default(cuid())
+  lessonId    String
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type        MaterialType
+  titleRu     String
+  titleKk     String
+  filePath    String?
+  fileName    String?
+  fileSize    Int?
+  mimeType    String?
+  externalUrl String?
+  order       Int          @default(0)
+}
+
+model Test {
+  id                  String   @id @default(cuid())
+  lessonId            String   @unique
+  lesson              Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  passScore           Int      @default(70)
+  maxAttempts         Int      @default(3)
+  timeLimitMin        Int      @default(30)
+  questionsToShow     Int      @default(10)
+  requireMaterialView Boolean  @default(true)
+  questions           Question[]
+  attempts            TestAttempt[]
+}
+
+model Question {
+  id       String       @id @default(cuid())
+  testId   String
+  test     Test         @relation(fields: [testId], references: [id], onDelete: Cascade)
+  type     QuestionType @default(SINGLE)
+  textRu   String
+  textKk   String
+  order    Int
+  options  AnswerOption[]
+}
+
+model AnswerOption {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  textRu     String
+  textKk     String
+  isCorrect  Boolean  @default(false)
+  order      Int
+}
+
+model LessonProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId        String
+  lesson          Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  videoWatched    Boolean  @default(false)
+  materialsViewed Boolean  @default(false)
+  completed       Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+model TestAttempt {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testId     String
+  test       Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+  score      Int
+  passed     Boolean
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  answers    TestAnswer[]
+}
+
+model TestAnswer {
+  id         String      @id @default(cuid())
+  attemptId  String
+  attempt    TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId String
+  optionIds  String
+  isCorrect  Boolean     @default(false)
+}
+
+model Certificate {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  issuedAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titleRu   String
+  titleKk   String
+  messageRu String
+  messageKk String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model PlatformSettings {
+  id                  String  @id @default("default")
+  emailNotifications  Boolean @default(true)
+  ssoEnabled          Boolean @default(false)
+  backupEnabled       Boolean @default(true)
+}
