@@ -13,6 +13,7 @@ function required(name: string, fallback?: string): string {
 export const config = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: Number(process.env.PORT ?? 3001),
+  host: process.env.HOST ?? '0.0.0.0',
   clientOrigin: required('CLIENT_ORIGIN', 'http://localhost:5173'),
   jwtSecret: required('JWT_SECRET'),
   jwtExpiresIn: '8h',
