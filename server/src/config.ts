@@ -6,8 +6,7 @@ const rootDir = path.resolve(__dirname, '../..')
 
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback
-  if (!value) throw new Error(`Missing env: ${name}`)
-  return value
+  return value ?? ''
 }
 
 export const config = {
@@ -15,7 +14,7 @@ export const config = {
   port: Number(process.env.PORT ?? process.env.RAILWAY_PORT ?? 3001),
   host: process.env.HOST ?? '0.0.0.0',
   clientOrigin: required('CLIENT_ORIGIN', 'http://localhost:5173'),
-  jwtSecret: required('JWT_SECRET'),
+  jwtSecret: required('JWT_SECRET', 'dev-secret'),
   jwtExpiresIn: '8h',
   cookieName: 'ktzh_session',
   uploadDir: path.resolve(rootDir, process.env.UPLOAD_DIR ?? 'uploads'),
