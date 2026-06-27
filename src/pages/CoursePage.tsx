@@ -12,7 +12,8 @@ export function CoursePage() {
   const [course, setCourse] = useState<CourseDetail | null>(null)
   const [lesson, setLesson] = useState<LessonDetail | null>(null)
   const [test, setTest] = useState<TestPayload | null>(null)
-  const [selected, setSelected] = useState<Record<string, string>>({})
+  const [selected, setSelected] = useState<Record<string, string[]>>({})
+  const [questionIndex, setQuestionIndex] = useState(0)
   const [videoWatched, setVideoWatched] = useState(false)
   const [result, setResult] = useState<{ score: number; passed: boolean } | null>(null)
   const [error, setError] = useState('')
@@ -38,7 +39,12 @@ export function CoursePage() {
     if (!id || !lesson || !lesson.hasTest) return
     api
       .getTest(id, lesson.id)
-      .then(setTest)
+      .then((payload) => {
+        setTest(payload)
+        setQuestionIndex(0)
+        setSelected({})
+        setResult(null)
+      })
       .catch(() => setTest(null))
   }, [id, lesson, videoWatched])
 
@@ -52,11 +58,30 @@ export function CoursePage() {
     if (!id || !lesson || !test) return
     const answers = test.questions.map((q) => ({
       questionId: q.id,
-      optionIds: selected[q.id] ? [selected[q.id]] : [],
+      optionIds: selected[q.id] ?? [],
     }))
     const res = await api.submitTest(id, lesson.id, answers)
     setResult({ score: res.score, passed: res.passed })
   }
+
+  const toggleOption = (questionId: string, optionId: string, type: string) => {
+    if (!videoWatched) return
+    setSelected((prev) => {
+      const current = prev[questionId] ?? []
+      if (type === 'MULTIPLE') {
+        const next = current.includes(optionId)
+          ? current.filter((id) => id !== optionId)
+          : [...current, optionId]
+        return { ...prev, [questionId]: next }
+      }
+      return { ...prev, [questionId]: [optionId] }
+    })
+  }
+
+  const currentQuestion = test?.questions[questionIndex]
+  const isLastQuestion = test ? questionIndex >= test.questions.length - 1 : true
+  const currentSelected = currentQuestion ? (selected[currentQuestion.id] ?? []) : []
+  const canProceed = currentSelected.length > 0
 
   if (error) return <div className="empty-state">{error}</div>
   if (!course || !lesson) return <div className="empty-state">...</div>
@@ -153,38 +178,58 @@ export function CoursePage() {
                   {result.passed ? t('testStatus.passed') : t('testStatus.failed')}: {result.score}%
                 </div>
               </div>
-            ) : test && test.questions[0] ? (
+            ) : test && test.questions.length > 0 && currentQuestion ? (
               <div className="test-block">
-                <div className="test-q">
-                  {localized(test.questions[0].textRu, test.questions[0].textKk, lang)}
+                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+                  {t('courseView.questionProgress', {
+                    current: questionIndex + 1,
+                    total: test.questions.length,
+                  })}
                 </div>
-                {test.questions[0].options.map((opt) => (
-                  <div
-                    key={opt.id}
-                    className={`test-opt${selected[test.questions[0]!.id] === opt.id ? ' selected' : ''}`}
-                    onClick={() => videoWatched && setSelected({ [test.questions[0]!.id]: opt.id })}
-                    style={{ opacity: videoWatched ? 1 : 0.6, pointerEvents: videoWatched ? 'auto' : 'none' }}
-                  >
-                    <i
-                      className={`ti ${selected[test.questions[0]!.id] === opt.id ? 'ti-circle-check' : 'ti-circle'}`}
-                      aria-hidden="true"
-                    />
-                    {localized(opt.textRu, opt.textKk, lang)}
-                  </div>
-                ))}
+                <div className="test-q">
+                  {localized(currentQuestion.textRu, currentQuestion.textKk, lang)}
+                </div>
+                {currentQuestion.options.map((opt) => {
+                  const isSelected = currentSelected.includes(opt.id)
+                  return (
+                    <div
+                      key={opt.id}
+                      className={`test-opt${isSelected ? ' selected' : ''}`}
+                      onClick={() => toggleOption(currentQuestion.id, opt.id, currentQuestion.type)}
+                      style={{ opacity: videoWatched ? 1 : 0.6, pointerEvents: videoWatched ? 'auto' : 'none' }}
+                    >
+                      <i
+                        className={`ti ${isSelected ? 'ti-circle-check' : 'ti-circle'}`}
+                        aria-hidden="true"
+                      />
+                      {localized(opt.textRu, opt.textKk, lang)}
+                    </div>
+                  )
+                })}
                 <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    disabled={!videoWatched || !selected[test.questions[0]!.id]}
-                    onClick={handleSubmit}
-                  >
-                    {t('courseView.nextQuestion')}
-                  </button>
+                  {!isLastQuestion ? (
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      disabled={!videoWatched || !canProceed}
+                      onClick={() => setQuestionIndex((i) => i + 1)}
+                    >
+                      {t('courseView.nextQuestion')}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      disabled={!videoWatched || !canProceed}
+                      onClick={handleSubmit}
+                    >
+                      {t('courseView.submitTest')}
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
-              <div className="empty-state">{error || '...'}</div>
+              <div className="empty-state">{t('courseView.noTestQuestions')}</div>
             )}
 
             {!videoWatched && (

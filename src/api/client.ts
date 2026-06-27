@@ -89,6 +89,29 @@ export const api = {
 
   adminTests: () => request<{ tests: AdminTest[] }>('/admin/tests'),
 
+  adminGetTest: (testId: string) => request<{ test: AdminTestDetail }>(`/admin/tests/${testId}`),
+
+  adminUpdateTest: (testId: string, data: Partial<AdminTestConfig>) =>
+    request<{ test: AdminTestConfig }>(`/admin/tests/${testId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  adminCreateQuestion: (testId: string, data: QuestionInput) =>
+    request<{ question: AdminQuestion }>(`/admin/tests/${testId}/questions`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  adminUpdateQuestion: (questionId: string, data: QuestionInput) =>
+    request<{ question: AdminQuestion }>(`/admin/questions/${questionId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  adminDeleteQuestion: (questionId: string) =>
+    request<{ ok: boolean }>(`/admin/questions/${questionId}`, { method: 'DELETE' }),
+
   uploadMaterial: (formData: FormData) =>
     request<{ courseId: string; lessonId: string }>('/admin/materials', {
       method: 'POST',
@@ -230,13 +253,61 @@ export interface SectionItem {
 
 export interface AdminTest {
   id: string
+  lessonId: string
   courseRu: string
   courseKk: string
   lessonOrder: number
   questionCount: number
+  questionsToShow: number
   passScore: number
   maxAttempts: number
   timeLimitMin: number
+}
+
+export interface AdminTestConfig {
+  id?: string
+  passScore: number
+  maxAttempts: number
+  timeLimitMin: number
+  questionsToShow: number
+  requireMaterialView: boolean
+}
+
+export interface AdminQuestionOption {
+  id?: string
+  textRu: string
+  textKk: string
+  isCorrect: boolean
+  order?: number
+}
+
+export interface AdminQuestion {
+  id: string
+  type: 'SINGLE' | 'MULTIPLE'
+  textRu: string
+  textKk: string
+  order: number
+  options: AdminQuestionOption[]
+}
+
+export interface AdminTestDetail extends AdminTestConfig {
+  id: string
+  lessonId: string
+  courseRu: string
+  courseKk: string
+  courseSlug: string
+  lessonOrder: number
+  lessonTitleRu: string
+  lessonTitleKk: string
+  questions: AdminQuestion[]
+}
+
+export interface QuestionInput {
+  type: 'SINGLE' | 'MULTIPLE'
+  textRu: string
+  textKk: string
+  order?: number
+  options: AdminQuestionOption[]
 }
 
 export interface PlatformSettings {

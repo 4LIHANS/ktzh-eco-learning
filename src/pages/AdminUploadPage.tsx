@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, localized, type SectionItem } from '../api/client'
@@ -122,7 +123,10 @@ export function AdminUploadPage() {
             {saved && (
               <div className="notif notif-green" style={{ marginTop: 12 }}>
                 <i className="ti ti-check" aria-hidden="true" />
-                <span>{t('upload.saved')}</span>
+                <span>
+                  {t('upload.saved')}. {t('upload.savedHint')}{' '}
+                  <Link to="/admin/tests">{t('nav.tests')}</Link>
+                </span>
               </div>
             )}
           </div>

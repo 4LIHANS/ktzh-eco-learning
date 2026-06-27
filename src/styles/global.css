@@ -673,6 +673,70 @@ select {
   font-size: 13px;
 }
 
+.question-card {
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 14px;
+  margin-bottom: 10px;
+  background: var(--color-background-primary);
+}
+
+.question-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.question-options-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.question-option-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.question-option-preview.correct {
+  color: var(--brand-green);
+  font-weight: 500;
+}
+
+.question-editor {
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 16px;
+  margin-top: 8px;
+  background: var(--color-background-secondary);
+}
+
+.option-editor-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.option-correct-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 900px) {
+  .option-editor-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .cert-card {
   border: 0.5px solid var(--color-border-tertiary);
   border-radius: var(--border-radius-md);

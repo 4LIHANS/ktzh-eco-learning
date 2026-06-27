@@ -12,6 +12,7 @@ import { AdminReportsPage } from './pages/AdminReportsPage'
 import { AdminUploadPage } from './pages/AdminUploadPage'
 import { AdminEmployeesPage } from './pages/AdminEmployeesPage'
 import { AdminTestsPage } from './pages/AdminTestsPage'
+import { AdminTestBuilderPage } from './pages/AdminTestBuilderPage'
 import { AdminSettingsPage } from './pages/AdminSettingsPage'
 
 function HomeRedirect() {
@@ -60,6 +61,7 @@ export default function App() {
           >
             <Route path="/admin/upload" element={<AdminUploadPage />} />
             <Route path="/admin/tests" element={<AdminTestsPage />} />
+            <Route path="/admin/tests/:testId" element={<AdminTestBuilderPage />} />
             <Route path="/admin/employees" element={<AdminEmployeesPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
           </Route>
